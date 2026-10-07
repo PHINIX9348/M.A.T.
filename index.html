@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <meta name="theme-color" content="#000000">
+  <meta name="background-color" content="#000000">
+
+  <meta name="description"
+        content="M.A.T. — Mechanized Assistant... Theoretically">
+
+  <link rel="manifest" href="manifest.json">
+
+  <title>M.A.T.</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --black: #000000;
+      --crimson: #7a0015;
+      --bright-crimson: #c40028;
+      --text: #eeeeee;
+      --muted: #777777;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--black);
+      color: var(--text);
+    }
+
+    body {
+      font-family: "Rajdhani", sans-serif;
+    }
+
+    /* =========================
+       BOOT SCREEN
+       ========================= */
+
+    #boot {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(122, 0, 21, 0.12),
+          transparent 45%
+        ),
+        #000000;
+
+      transition: opacity 1s ease;
+    }
+
+    .boot-container {
+      width: min(700px, 90vw);
+      text-align: center;
+    }
+
+    .mat-symbol {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 35px;
+
+      border: 2px solid var(--crimson);
+      border-radius: 50%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      box-shadow:
+        0 0 15px rgba(196, 0, 40, 0.25),
+        inset 0 0 20px rgba(196, 0, 40, 0.08);
+
+      animation: pulse 2.5s infinite;
+    }
+
+    .mat-symbol::before {
+      content: "M";
+      font-family: "Share Tech Mono", monospace;
+      font-size: 72px;
+      font-weight: bold;
+      color: var(--bright-crimson);
+      text-shadow: 0 0 18px rgba(196, 0, 40, 0.8);
+    }
+
+    .boot-title {
+      font-family: "Share Tech Mono", monospace;
+      font-size: clamp(42px, 8vw, 80px);
+      letter-spacing: 12px;
+      margin-left: 12px;
+    }
+
+    .boot-subtitle {
+      color: #888;
+      letter-spacing: 4px;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .boot-status {
+      margin-top: 50px;
+      font-family: "Share Tech Mono", monospace;
+      text-align: left;
+      line-height: 2;
+      color: #aaa;
+    }
+
+    .boot-status span {
+      color: var(--bright-crimson);
+    }
+
+    .boot-progress {
+      height: 2px;
+      margin-top: 25px;
+      background: #222;
+      overflow: hidden;
+    }
+
+    .boot-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--bright-crimson);
+      box-shadow: 0 0 10px var(--bright-crimson);
+      animation: bootProgress 3.5s linear forwards;
+    }
+
+    /* =========================
+       MAIN APPLICATION
+       ========================= */
+
+    #app {
+      position: fixed;
+      inset: 0;
+
+      display: none;
+      flex-direction: column;
+
+      background:
+        radial-gradient(
+          circle at 50% 0%,
+          rgba(122, 0, 21, 0.08),
+          transparent 35%
+        ),
+        #000000;
+    }
+
+    .header {
+      height: 70px;
+      flex-shrink: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 0 25px;
+
+      border-bottom: 1px solid #260009;
+      background: rgba(0, 0, 0, 0.92);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .status-light {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--bright-crimson);
+      box-shadow: 0 0 12px var(--bright-crimson);
+    }
+
+    .brand-name {
+      font-family: "Share Tech Mono", monospace;
+      font-size: 22px;
+      letter-spacing: 4px;
+    }
+
+    .online {
+      font-family: "Share Tech Mono", monospace;
+      font-size: 12px;
+      color: #777;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+
+    .sidebar {
+      width: 230px;
+      flex-shrink: 0;
+
+      border-right: 1px solid #260009;
+      padding: 20px 12px;
+
+      background: rgba(5, 0, 2, 0.9);
+    }
+
+    .nav-label {
+      font-family: "Share Tech Mono", monospace;
+      font-size: 10px;
+      color: #555;
+      letter-spacing: 2px;
+      margin: 10px 10px;
+    }
+
+    .nav-button {
+      width: 100%;
+      padding: 13px 14px;
+      margin-bottom: 5px;
+
+      border: 1px solid transparent;
+      background: transparent;
+
+      color: #888;
+      font-family: "Rajdhani", sans-serif;
+      font-size: 16px;
+      text-align: left;
+
+      cursor: pointer;
+    }
+
+    .nav-button:hover,
+    .nav-button.active {
+      color: #fff;
+      background: #100004;
+      border-color: #38000d;
+    }
+
+    .content {
+      flex: 1;
+      min-width: 0;
+      overflow: auto;
+      padding: 30px;
+    }
+
+    .system-card {
+      border: 1px solid #30000b;
+      background: rgba(8, 0, 2, 0.8);
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-family: "Share Tech Mono", monospace;
+      color: var(--bright-crimson);
+      letter-spacing: 3px;
+      margin-bottom: 15px;
+    }
+
+    .console {
+      min-height: 250px;
+
+      background: #020202;
+      border: 1px solid #250008;
+
+      padding: 20px;
+
+      font-family: "Share Tech Mono", monospace;
+      color: #aaa;
+
+      white-space: pre-wrap;
+    }
+
+    .prompt {
+      color: var(--bright-crimson);
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow:
+          0 0 15px rgba(196, 0, 40, 0.2),
+          inset 0 0 20px rgba(196, 0, 40, 0.05);
+      }
+
+      50% {
+        box-shadow:
+          0 0 35px rgba(196, 0, 40, 0.45),
+          inset 0 0 30px rgba(196, 0, 40, 0.12);
+      }
+    }
+
+    @keyframes bootProgress {
+      from {
+        width: 0%;
+      }
+
+      to {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar {
+        display: none;
+      }
+
+      .content {
+        padding: 15px;
+      }
+
+      .header {
+        padding: 0 15px;
+      }
+
+      .boot-title {
+        letter-spacing: 6px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       BOOT
+       ========================= -->
+
+  <section id="boot">
+
+    <div class="boot-container">
+
+      <div class="mat-symbol"></div>
+
+      <div class="boot-title">M.A.T.</div>
+
+      <div class="boot-subtitle">
+        MECHANIZED ASSISTANT... THEORETICALLY
+      </div>
+
+      <div class="boot-status">
+
+        [SYSTEM BOOT] ........ <span>ACTIVE</span><br>
+        [CORE SYSTEM] ....... <span>INITIALIZING</span><br>
+        [INTERFACE] .......... <span>VANTA-CRIMSON</span><br>
+        [MEMORY] ............. <span>STANDBY</span><br>
+        [DIAGNOSTICS] ........ <span>STANDBY</span><br>
+        [SENSORS] ............ <span>DISABLED</span>
+
+      </div>
+
+      <div class="boot-progress">
+        <div class="boot-progress-bar"></div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       MAIN APPLICATION
+       ========================= -->
+
+  <section id="app">
+
+    <header class="header">
+
+      <div class="brand">
+        <div class="status-light"></div>
+        <div class="brand-name">M.A.T.</div>
+      </div>
+
+      <div class="online">
+        SYSTEM ONLINE
+      </div>
+
+    </header>
+
+
+    <main class="main">
+
+      <aside class="sidebar">
+
+        <div class="nav-label">SYSTEM</div>
+
+        <button class="nav-button active">
+          CORE
+        </button>
+
+        <button class="nav-button">
+          MEMORY
+        </button>
+
+        <button class="nav-button">
+          KNOWLEDGE
+        </button>
+
+        <button class="nav-button">
+          DIAGNOSTICS
+        </button>
+
+
+        <div class="nav-label">TOOLS</div>
+
+        <button class="nav-button">
+          CALCULATOR
+        </button>
+
+        <button class="nav-button">
+          CODE
+        </button>
+
+        <button class="nav-button">
+          RESEARCH
+        </button>
+
+
+        <div class="nav-label">CONTROL</div>
+
+        <button class="nav-button">
+          VOICE
+        </button>
+
+        <button class="nav-button">
+          PRIVACY
+        </button>
+
+        <button class="nav-button">
+          SETTINGS
+        </button>
+
+      </aside>
+
+
+      <section class="content">
+
+        <div class="system-card">
+
+          <div class="card-title">
+            M.A.T. CORE
+          </div>
+
+          <p>
+            Mechanized Assistant... Theoretically
+          </p>
+
+          <p>
+            Core systems are ready.
+          </p>
+
+        </div>
+
+
+        <div class="system-card">
+
+          <div class="card-title">
+            COMMAND CONSOLE
+          </div>
+
+          <div class="console">
+<span class="prompt">M.A.T. &gt;</span> System initialized.
+
+<span class="prompt">M.A.T. &gt;</span> Awaiting objective...
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </section>
+
+
+  <script>
+
+    /*
+      M.A.T. PWA STARTER
+    */
+
+    const boot = document.getElementById("boot");
+    const app = document.getElementById("app");
+
+
+    /*
+      BOOT SEQUENCE
+    */
+
+    setTimeout(() => {
+
+      boot.style.opacity = "0";
+
+      setTimeout(() => {
+
+        boot.style.display = "none";
+        app.style.display = "flex";
+
+      }, 1000);
+
+    }, 4000);
+
+
+    /*
+      SERVICE WORKER
+    */
+
+    if ("serviceWorker" in navigator) {
+
+      window.addEventListener("load", () => {
+
+        navigator.serviceWorker
+          .register("./service-worker.js")
+          .then(() => {
+
+            console.log("M.A.T. service worker registered.");
+
+          })
+          .catch(error => {
+
+            console.warn(
+              "M.A.T. service worker registration failed:",
+              error
+            );
+
+          });
+
+      });
+
+    }
+
+  </script>
+
+</body>
+</html>
